@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- JavaScript -->
+    <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="bootstrap.min.js"></script>    
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
+    
+    <title>Company</title> 
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">    
+    <link rel="shortcut icon" href="favicon.png">
+
+    <!-- Bootstrap Core CSS -->
+    <link href="bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+    body {
+        padding-top: 70px;
+        /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+    }
+    </style>
+     <!-- Datatable CSS -->
+     <link rel="stylesheet" type="text/css" href="style.css">
+     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.css">
+    
+    <style>
+    td.slide {
+    background: url('http://next.datatables.net/examples/resources/details_open.png') no-repeat center center;
+    cursor: pointer;
+    }
+    tr.shown td.slide {
+        background: url('http://next.datatables.net/examples/resources/details_close.png') no-repeat center center;
+    }
+    div.slider {
+    display: none;
+    }
+    
+    table.dataTable tbody td.no-padding {
+        padding: 0;
+    }
+    </style>
+
+
+    <!-- page script -->
+    <script> 
+
+    var key = <%- JSON.stringify(user.token) %>;
+    var userID = <%- JSON.stringify(user.id) %>;
+
+    /*/loading icon
+    $(document).ajaxStart(function(){
+        $('#loading').show();
+    }).ajaxStop(function(){
+        $('#loading').hide();
+    });*/
+
+/* Formatting function for row details - modify as you need */
+function format ( d ) {
+    // `d` is the original data object for the row
+    return '<div class="slider">'+
+        '<table cellpadding="5" cellspacing="0" border="0" width="100%" style="padding-left:60px">'+
+            '<tr>'+
+                '<td>Tracking link:</td>'+
+                '<td>https://morning-cliffs-22365.herokuapp.com/click?number='+d.number+'&pub='+userID+'&subid=<font color="red">{your_click_id}</font></td>'+
+            '</tr>'+
+            '<tr>'+
+                '<td>Preview:</td>'+
+                '<td><a href='+d.landing+'>'+d.landing+'</a></td>'+
+            '</tr>'+
+            '<tr>'+
+                '<td>Details:</td>'+
+                '<td>'+d.details+'</td>'+                
+            '</tr>'+
+            '<tr>'+
+                '<td>Targeting:</td>'+
+                '<td>'+d.os+'</td>'+
+            '</tr>'+
+        '</table>'+
+    '</div>';
+}
+
+    //datatable
+    $(document).ready(function() {
+        var table = $('#example').on( 'processing.dt', function ( e, settings, processing ) {
+                    $('#loading').css( 'display', processing ? 'block' : 'none' );
+            } ).DataTable( {
+            columnDefs: [
+            {targets: [ 0,1,2,3,4,5,6,7,8 ], defaultContent: ''},                       
+         
+            ],
+            "ajax": {
+            url: '/feed?access_token='+key,
+            dataSrc: ''
+            },
+            "columns": [
+               {
+                "class":          'slide',
+                "orderable":      false,
+                "data":           null,
+                "defaultContent": ''
+            },
+            { "data": "number" },
+            { "data": "icon", "render":function (data,type, full, meta) {
+                return '<img src='+data+'>'; 
+            }},
+            { "data": "name" },
+            { "data": "device", "render": function (data,type, full, meta) {
+                if (data == "Android") return '<img src="android2.png">';   
+                else if(data == "iOS") return '<img src="ios.png" >';  
+            }},
+            { "data": "geo" },
+            { "data": "Incent" },
+            { "data": "street", "render": function (data, type, row, meta) {return '$'+data;} },            
+            { "data": "cap" }
+        ],
+        "order": [[1, 'asc']]
+    });
+    
+      // Add event listener for opening and closing details
+    $('#example tbody').on('click', 'td.slide', function () {
+        var tr = $(this).closest('tr');
+        var row = table.row( tr );
+ 
+        if ( row.child.isShown() ) {
+            // This row is already open - close it
+            $('div.slider', row.child()).slideUp( function () {
+            row.child.hide();
+            tr.removeClass('shown');
+             } );
+        }
+        else {
+            // Open this row
+            row.child( format(row.data()), 'no-padding').show();
+            tr.addClass('shown');
+
+            $('div.slider', row.child()).slideDown();
+        }
+    });
+    
+
+    });
+    </script> 
+
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">
+                 <img alt="Brand" src="logo.png" alt="logo" height="100%">
+                </a>
+                
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li role="presentation" class="active">
+                        <a href="#">Offers</a>
+                    </li >
+                    <li role="presentation">
+                        <a href="/report">Report</a>
+                    </li>                    
+                </ul>
+                    
+                    <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><%= user.displayName %> <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/settings">Settings</a></li>                                               
+                        <li role="separator" class="divider"></li>
+                        <li><a href="/logout">Log out</a></li>                        
+                    </ul>
+                    </li>
+                    </ul>
+                   
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Content -->
+    <div class="container-fluid">    
+         <table id="example" class="hover row-border" cellspacing="0" width="100%">
+        <thead align="left">
+            <tr>
+                <th></th>                   
+                <th>ID</th>
+                <th>Icon</th>
+                <th>Campaign Name</th>
+                <th>OS</th>
+                <th>Countries</th>
+                <th>Type</th>
+                <th>Payout</th>
+                <th>Cap</th>
+            </tr>
+        </thead>  
+    </table>
+    <center><div id="loading"><p><img src="gears.gif" /></p></div></center>   
+    </div>
+    <!-- /.container -->
+
+    
+    
+</body>
+
+</html>
